@@ -20,6 +20,8 @@ cpastor [at] pas.uned.es
 ## Requirements
 
 FLUNETS requires Matlab 2011b or higher version and the Image Processing Toolbox.
+Requires to download TopoToolbox:(https://github.com/wschwanghart/topotoolbox).
+
 
 % -------------------------------------------------------------------------------------------------
 ## Getting started
@@ -27,4 +29,4 @@ FLUNETS requires Matlab 2011b or higher version and the Image Processing Toolbox
 FLUNETS consists of 6 functions. These functions need to be on the search path of Matlab.  
 FLUNETS_main.m adds the directories required to execute FLUNETS successfully. 
 
-Do not change the directory structure.
+Fo more info, read the user-guide file.

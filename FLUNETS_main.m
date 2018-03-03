@@ -61,7 +61,7 @@
 % 
 %     maxbase: Is the limitant height of an outlet point to be sorted.
 %     If an outlet is located at a lower height to the value set,
-%     it will not be considered. Type a number, can be float, double or integer,
+%     it will be considered. Type a number, can be float, double or integer,
 %	  else leave maxbase = ''.
 % 
 %     internal_matrices: This parameter provides the matrices generated 
@@ -115,8 +115,8 @@
 % paths to be added to MATLAB environment
 % set the paths where the FLUNETS functions and the TopoToolbox are located
 % -------------------------------------------------------------------------
-addpath stream_ordering_tools %add the path where FLUNETS functions are stored.
-addpath topotoolbox           %add the path where Topotoolbox functions are stored.
+addpath $addpath/stream_ordering_tools %add the path where FLUNETS functions are stored.
+addpath $addpath/topotoolbox           %add the path where Topotoolbox functions are stored.
 
 
 % declare global variables
@@ -140,8 +140,8 @@ hierarchy_attribute           = 'accumulation';             %hierarchy attribute
 
 % optional parameters
 % -------------------------------------------------------------------------
-max_trib_order                = ;                             
-min_drainage_area             = ;                     
+max_trib_order                = '';                             
+min_drainage_area             = '';                     
 maxbase                       = '';                              
 internal_matrices             = '';                              
 junctions_points              = '';

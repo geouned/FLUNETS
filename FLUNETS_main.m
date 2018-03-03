@@ -134,19 +134,18 @@ global output_name
 % parameters
 % -------------------------------------------------------------------------
 % mandatory parameters
-% dem_namefile                  = '$yourpath/dem.asc';              %your DEM 
-dem_namefile                  = 'F:\CARTOGRAFIA_updated_20151203\tareas_text\tarea_24__stream_ordering\environmetal_modeling&software\program_code\program_code_flunets\inputs\arlanza.asc';              %your DEM 
+dem_namefile                  = '$yourpath\dem.asc';              %your DEM 
 sorting_type                  = 'hack';                     %sorting hierarchy           
 hierarchy_attribute           = 'accumulation';             %hierarchy attribute
 
 % optional parameters
 % -------------------------------------------------------------------------
-max_trib_order                = 2;                             
-min_drainage_area             = 2000;                     
+max_trib_order                = ;                             
+min_drainage_area             = ;                     
 maxbase                       = '';                              
-internal_matrices             = 'yes';                              
-junctions_points              = 'yes';
-output_name                   = 'tigre';
+internal_matrices             = '';                              
+junctions_points              = '';
+output_name                   = '';
 
 % calls build_streams_map
 % -------------------------------------------------------------------------

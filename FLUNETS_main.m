@@ -3,6 +3,13 @@
 %     FLUNETS provides ordered channel networks extracted from a DEM input.
 %     Multiple input parameters are available in order to extract a
 %     customized channel network. 
+%	  FLUNETS uses some functions from TopoToolbox  
+%	  (DOI:10.5194/esurf-2-1-2014) and requires MATLAB 2011b version and the Image 
+%	  Processing Toolbox for some of its functions. TopoToolbox terrain analysis 
+%	  toolset is available for download on Wolfgang Schwanghart website, where you
+%	  can find a direct download link from Github
+%	  (https://github.com/wschwanghart/topotoolbox).
+%
 % 
 %     The sorting hierarchies can be either Hack or Horton.
 % 
@@ -19,16 +26,14 @@
 %     as order 1. Tributaries of second order receive only tributaries of 
 %     first order, third order tributaries receive tributaries of second 
 %     order but may also receive first order tributaries, and so on. Needs 
-%     to compute Strahler first. The stream order will be the Strahler 
-%     order at the pour point.
-
-
+%     to compute Strahler first. 
+%
+%
 % Parameters:
 % 
 %     Mandatory parameters:
 % 
 %     dem_namefile: An ASCII DEM file written with the extension ('.asc).
-%     The DEM file should be located in the 'inputs/' folder.
 %     
 %     sorting_type: The sorting hierarchy. Type 'hack' or 'horton'.
 %     
@@ -51,31 +56,34 @@
 %     be sorted. Only channels with equal or higher drainage area than the 
 %     value set will be sorted. If left empty, the default value 
 %     will be 10^-4 of the total DEM watershed area in square
-%     meters. Type an area (as integer), else leave min_drainage_area = ''.
+%     meters. Type a number, can be float, double or integer, else leave 
+%	  min_drainage_area = ''.
 % 
 %     maxbase: Is the limitant height of an outlet point to be sorted.
 %     If an outlet is located at a lower height to the value set,
-%     it will not be considered. Type an integer, else leave maxbase = ''.
+%     it will not be considered. Type a number, can be float, double or integer,
+%	  else leave maxbase = ''.
 % 
 %     internal_matrices: This parameter provides the matrices generated 
 %     internally with Topotoolbox functions' (flow direction, flow
 %     accumulation, flow distance and Strahler matrices (for Horton)).
-%     If you want the internal matrices type 'yes', else leave 
+%     Is string type. If you want the internal matrices type 'yes', else leave 
 %     intern_matrices = ''.
 % 
 %     junctions_points: This parameter provides the pour point matrix.
 %     The pour points are the first point in each tributary, neighbours 
-%     to the confluence with the main channel. If you want the pour points 
-%     matrix type 'yes', else leave junctions_points = ''.
+%     to the confluence with the main channel. Is string type. If you want the 
+%	  pour points matrix type 'yes', else leave junctions_points = ''.
 % 
-%     output_name: The name for the resultant channel network in
-%     ASCII format. Has to be written without the extension '.asc'. 
-%     If no name is given, the resultant name will
-%     be built by adding to the DEM name the values set in the parameters
-%     joined by an underscore. Type a name, else leave output_name = ''.
-
-
-
+%     output_name: The name for the obtained ASCII channel network.
+%     Has to be written without the extension '.asc'/'.txt', either 
+%     spaces or strange characters.   
+%     If no name is given, the resultant name will be built by adding to
+%     the DEM name the values set in the parameters joined by an underscore.
+%     Type a name, else leave output_name = ''.
+%
+%
+%
 %  Output files:
 % 
 %     Output files: An ACII file 
@@ -84,29 +92,32 @@
 %     Both files can be drawn directly in ArcMap.
 %     These file will be located inside 'outputs/images' and 'outputs'
 %     folders respectively.
-
-
+%
+%
 % Meaning for the .csv columns:
 % 
 %	Field1: 'x', is the x coordinate (in a projected system).
 %	Field2: 'y', is the y coordinate (in a projected system).
 %	Field3: 'z', is the elevation.
-%	Field4: 'value', is the river value (Hack or Horton order).
-%	Field5: 'accumulation', is the accumulation value upstream direction.
-%	Field6: 'area', is the drainage area in square meters.
-%	Field7: 'id', the id number of each river (unique).
-%	Field8: 'distance', is the distance upstream direction.
+%	Field4: 'riv_value', is the river value (Hack or Horton order).
+%	Field5: 'acc_value', is the accumulation value upstream direction.
+%	Field6: 'area_value', is the drainage area in square meters.
+%	Field7: 'id_value', the id number of each river (unique).
+%	Field8: 'dis_value', is the distance upstream direction.
+%   Field9: 'jun_value', the pour points location.
+%   Field10: 'out_value', the outlets location.
+
+
 
 
 
 
 % paths to be added to MATLAB environment
+% set the paths where the FLUNETS functions and the TopoToolbox are located
 % -------------------------------------------------------------------------
-addpath stream_ordering_tools_prueba
-addpath topotoolbox-master
-addpath inputs
-addpath outputs
-addpath outputs/images
+addpath stream_ordering_tools %add the path where FLUNETS functions are stored.
+addpath topotoolbox           %add the path where Topotoolbox functions are stored.
+
 
 % declare global variables
 % -------------------------------------------------------------------------
@@ -123,22 +134,23 @@ global output_name
 % parameters
 % -------------------------------------------------------------------------
 % mandatory parameters
-[dem_namefile, extension]     = strtok('arlanza.asc', '.');     
-sorting_type                  = 'hack';                               
-hierarchy_attribute           = 'accumulation';                       
+% dem_namefile                  = '$yourpath/dem.asc';              %your DEM 
+dem_namefile                  = 'F:\CARTOGRAFIA_updated_20151203\tareas_text\tarea_24__stream_ordering\environmetal_modeling&software\program_code\program_code_flunets\inputs\arlanza.asc';              %your DEM 
+sorting_type                  = 'hack';                     %sorting hierarchy           
+hierarchy_attribute           = 'accumulation';             %hierarchy attribute
 
 % optional parameters
 % -------------------------------------------------------------------------
-max_trib_order                = '2';                             
-min_drainage_area             = '';                     
+max_trib_order                = 2;                             
+min_drainage_area             = 2000;                     
 maxbase                       = '';                              
-internal_matrices             = '';                              
-junctions_points              = '';
-output_name                   = '';
+internal_matrices             = 'yes';                              
+junctions_points              = 'yes';
+output_name                   = 'tigre';
 
 % calls build_streams_map
 % -------------------------------------------------------------------------
-flunet_chan_res =  build_streams_map(dem_namefile,extension) ; 
+flunet_chan_res =  build_streams_map(dem_namefile) ; 
 
 
 

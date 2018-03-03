@@ -22,9 +22,9 @@ global id_river
 
 
 mkdir('outputs');
-mkdir('outputs\channel_network');
+mkdir('outputs\images');
 mkdir('outputs\csv');
-addpath outputs/channel_network
+addpath outputs/images
 addpath outputs/csv
 
 
@@ -81,9 +81,13 @@ if (isempty(min_drainage_area)         == 1)
     min_drainage_area = ipositif * cell_area * 0.0001 ; % min area to be a stream
 end
 
+output_name_ascii = [];
 if (isempty(output_name) == 1)
     output_name                = strcat(DEM.name,underscore,sorting_type,underscore,hierarchy_attribute,underscore,num2str(max_trib_order-1),underscore,num2str(min_drainage_area),underscore, datetime);
+elseif ~(isempty(output_name) == 1)
+    output_name                = strcat('outputs/csv',output_name);
 end
+
 % declare var matrices
 % % -----------------------------------------------------------------------
 dem_fill              = DEMf.Z; 
@@ -192,11 +196,11 @@ if strcmp(sorting_type,'horton')
     STRAHLER.size               = [STRAHLER.size(1)-4,STRAHLER.size(2)-4];
 end
 
-if strcmp(junctions_points,'yes')
-    JUNCTIONS                   = FDIR;
-    JUNCTIONS.Z                 = junction_matrix;
-    JUNCTIONS.size              = FDIR.size;
-end
+% if strcmp(junctions_points,'yes')
+%     JUNCTIONS                   = FDIR;
+%     JUNCTIONS.Z                 = junction_matrix;
+%     JUNCTIONS.size              = FDIR.size;
+% end
 
 STREAMS                         = FDIR;
 STREAMS.Z                       = streams_matrix;
@@ -209,27 +213,23 @@ ID.size                         = FDIR.size;
 
 % writes outputs to a ASCII 
 % % -----------------------------------------------------------------------
-GRIDobj2ascii(STREAMS,strcat('outputs/channel_network/',output_name,ext));
-GRIDobj2ascii(ID,strcat('outputs/channel_network/',DEM.name,underscore,'id',underscore,datetime,ext));
+GRIDobj2ascii(STREAMS,output_name_ascii);
+GRIDobj2ascii(ID,strcat('outputs/images/',DEM.name,underscore,'id',underscore,datetime,ext));
 
 if strcmp(internal_matrices ,'yes')
-    mkdir('outputs\flow_related');
-    addpath outputs/flow_related
-    GRIDobj2ascii(FDIR,strcat('outputs/flow_related/',DEM.name,underscore,'flowdir',underscore,datetime,ext));
-    GRIDobj2ascii(FA,strcat('outputs/flow_related/',DEM.name,underscore,'flowacc',underscore,datetime,ext));
+    GRIDobj2ascii(FDIR,strcat('outputs/images/',DEM.name,underscore,'flowdir',underscore,datetime,ext));
+    GRIDobj2ascii(FA,strcat('outputs/images/',DEM.name,underscore,'flowacc',underscore,datetime,ext));
     if strcmp(hierarchy_attribute ,'distance')
-        GRIDobj2ascii(DISTANCE,strcat('outputs/flow_related/',DEM.name,underscore,'flowdist',underscore,datetime,ext));
+        GRIDobj2ascii(DISTANCE,strcat('outputs/images/',DEM.name,underscore,'flowdist',underscore,datetime,ext));
     end
     if strcmp(sorting_type,'horton')
-        GRIDobj2ascii(STRAHLER,strcat('outputs/flow_related/',DEM.name,underscore,'strahler',underscore,datetime,ext));
+        GRIDobj2ascii(STRAHLER,strcat('outputs/images/',DEM.name,underscore,'strahler',underscore,datetime,ext));
     end
 end
 
-if strcmp(junctions_points,'yes')
-    mkdir('outputs\junctions');
-    addpath outputs/junctions
-    GRIDobj2ascii(JUNCTIONS,strcat('outputs/junctions/',DEM.name,underscore,'junctions',underscore,datetime,ext));
-end
+% if strcmp(junctions_points,'yes')
+%     GRIDobj2ascii(JUNCTIONS,strcat('outputs/images/',DEM.name,underscore,'junctions',underscore,datetime,extension));
+% end
 
 %clear variables
 % % -----------------------------------------------------------------------
@@ -271,7 +271,6 @@ area_value = acc_value.*cell_area;
 %exports values to csv with no headers for arcmap
 % % -----------------------------------------------------------------------
 dlmwrite(strcat('outputs/csv/',output_name,'.csv'), [x y z' riv_value' acc_value' area_value' id_value' dis_value' jun_value' out_value'], 'precision', 8);
-
 
 
 % %exports values to excel with headers 

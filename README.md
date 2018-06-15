@@ -26,8 +26,8 @@ Requires to download TopoToolbox:(https://github.com/wschwanghart/topotoolbox).
 % -------------------------------------------------------------------------------------------------
 ## Getting started
 
-The main script is FLUNETS_main.m. In FLUNETS_main.m, is where the stream_ordering_tools and TopoToolbox paths are set. Also is where the input data and optional parameters are specified.
+The main script is FLUNETS_main.m. In FLUNETS_main.m, is where the stream_ordering_tools and TopoToolbox paths are set. Also is where the input data is specified.
 
-The output files are an ordered drainage network in ASCII format, and a CSV file with descriptive data of the network, such as the accumulation value of each river, the distance to the headwater, the length of the river, the drainage area, etc. 
+The output files are an ordered drainage network given as a raster format and a CSV file with descriptive data of the network, such as the accumulation value of each river, the distance to the headwater, the length of the river, the drainage area, etc. 
 
 Fo more info, read the user-guide file.

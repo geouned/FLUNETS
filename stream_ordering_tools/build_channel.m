@@ -1,4 +1,4 @@
-function [xy_channel, xy_junction, order_junction, xy_dist_fin ] = build_channel( xy,  xy_channel, xy_junction, order_junction, xy_dist, order) 
+function [xy_channel, xy_pourpoint, order_pourpoint, xy_dist_fin ] = build_channel(xy,  xy_channel, xy_pourpoint, order_pourpoint, xy_dist, order) 
 
 % declare global variables
 % % -----------------------------------------------------------------------
@@ -60,7 +60,7 @@ while n
 
     % finds juntions neighbors to the river cell adressed     
     % % -------------------------------------------------------------------
-    [xy_junction_i, order_junction_i]         = find_junction_cells(flowacc_neighbors, coord_xy_neighbors, strahler_neighbors, order);
+    [xy_pourpoint_i, order_pourpoint_i]         = find_pourpoints_cells(flowacc_neighbors, coord_xy_neighbors, strahler_neighbors, order);
 
     % if there is no new river cell (xy), then it has reached the head of a river
     % % -------------------------------------------------------------------
@@ -71,11 +71,11 @@ while n
         n               = false; % breaks while loop, ends channel
     end
 
-    % if river cell has junction cells around, adds its indices and orders
+    % if river cell has pourpoint cells around, adds its indices and orders
     % % -------------------------------------------------------------------
-    if ~isempty(xy_junction_i)
-        xy_junction    = [xy_junction, xy_junction_i]; % adds new xy junctions 
-        order_junction = [order_junction, order_junction_i];
+    if ~isempty(xy_pourpoint_i)
+        xy_pourpoint    = [xy_pourpoint, xy_pourpoint_i]; % adds new xy pourpoints 
+        order_pourpoint = [order_pourpoint, order_pourpoint_i];
     end  
     
     ind_chan = ind_chan + 1; 

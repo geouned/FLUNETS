@@ -28,7 +28,7 @@ end
 % % -----------------------------------------------------------------------
 if strcmp(sorting_type,'hack')
     for i = 1:numel(elevation_neighbors) 
-        if isequal(flowdir_neighbors(i), fdir_values(i)) && (flow_neighbors(i)<=river_value) && ~isequal(flow_neighbors(i),NaN)
+        if isequal(flowdir_neighbors(i), fdir_values(i)) && (flow_neighbors(i)<=river_value) && ~isnan(flow_neighbors(i))
             river_candidate(i)       = flow_neighbors(i); % if true, passes accumulation value to river_candidate keeping element position
         else
             flowacc_neighbors(i)     = NaN; % if element does not flow to river cell, its element value is turned to 0 in val4flowacc
@@ -42,7 +42,7 @@ elseif  strcmp(sorting_type,'horton')
             xy                        = coord_xy_neighbors(i);
             flowacc_neighbors(i)      = NaN;
             pos                       = i;
-        elseif (isequal(flowdir_neighbors(i), fdir_values(i)) && (flow_neighbors(i)<=river_value) && ~isequal(flow_neighbors(i),NaN))% selects those elements which flow into river-cell
+        elseif (isequal(flowdir_neighbors(i), fdir_values(i)) && (flow_neighbors(i)<=river_value) && ~isnan(flow_neighbors(i)))% selects those elements which flow into river-cell
             river_candidate(i)        = flow_neighbors(i); % if true, passes accumulation value to val4flowacc_possible keeping element position
         else
             flowacc_neighbors(i)      = NaN; % if element does not flow to river cell, its element value is turned to 0

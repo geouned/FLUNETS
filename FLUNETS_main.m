@@ -1,3 +1,5 @@
+% #########################################################################
+% #########################################################################
 % Description 
 % 
 %     FLUNETS provides ordered channel networks extracted from a DEM input.
@@ -16,7 +18,7 @@
 %     In Hack hierarchy, the main stream is designated as order 1 and 
 %     smaller tributary streams are designated with increasingly higher 
 %     orders, from the stream confluence upstream to the headwaters. When 
-%     a parent channel of order n meets a junction, ascribes order n + 1 
+%     a parent channel of order n meets a pour point, ascribes order n + 1 
 %     to the joining tributary.
 % 
 %     In Horton hierarchy (in the inverse of Hack hierarchy),
@@ -33,13 +35,13 @@
 % 
 %     Mandatory parameters:
 % 
-%     dem_namefile: An ASCII DEM file written with the extension ('.asc).
+%     Digital Elevation Model: An ESRI ASCII or TIF/GeoTIFF file. 
+%                               
+%     Sorting Method: The sorting hierarchy. Values: 'hack' or 'horton'.
 %     
-%     sorting_type: The sorting hierarchy. Type 'hack' or 'horton'.
-%     
-%     hierarchy_attribute: Hierarchy attribute defines the hierarchy of a 
+%     Attribute of hierarchy: Hierarchy attribute defines the hierarchy of a 
 %                          segment over another when two or more segments 
-%                          converge in a confluence. Type 'accumulation' or 
+%                          converge in a confluence. Values: 'accumulation' or 
 %                          'distance'.
 % 
 %     Optional parameters:
@@ -47,50 +49,46 @@
 %     If these parameters are left empty, a default value for each 
 %     parameter will be set. 
 % 
-%     max_trib_order: Is the '-ith' order up to which the network 
+%     Max. tributary order: Is the '-ith' order up to which the network 
 %     will be sorted. Only tributaries of equal or lower order to 
 %     the value set will be sorted. If left empty, all tributaries 
-%     will be sorted. Type an integer, else leave max_trib_order = ''.
+%     will be sorted. Write an integer, else leave empty.
 % 
-%     min_drainage_area: Is the minimum drainage area of a channel to 
+%     Min. drainage area: Is the minimum drainage area of a channel to 
 %     be sorted. Only channels with equal or higher drainage area than the 
 %     value set will be sorted. If left empty, the default value 
 %     will be 10^-4 of the total DEM watershed area in square
-%     meters. Type a number, can be float, double or integer, else leave 
-%	  min_drainage_area = ''.
+%     meters. Write a number, can be float, double or integer, else leave 
+%	  empty.
 % 
-%     maxbase: Is the limitant height of an outlet point to be sorted.
+%     Max. base: Is the limitant height of an outlet point to be sorted.
 %     If an outlet is located at a lower height to the value set,
-%     it will be considered. Type a number, can be float, double or integer,
-%	  else leave maxbase = ''.
+%     it will be considered. Write a number, can be float, double or integer,
+%	  else leave empty.
 % 
-%     internal_matrices: This parameter provides the matrices generated 
+%     Internal fluvial files: This parameter provides the matrices generated 
 %     internally with Topotoolbox functions' (flow direction, flow
 %     accumulation, flow distance and Strahler matrices (for Horton)).
-%     Is string type. If you want the internal matrices type 'yes', else leave 
-%     intern_matrices = ''.
+%     Is string type. If you want the internal matrices write 'yes', else 
+%     leave empty.
 % 
-%     junctions_points: This parameter provides the pour point matrix.
+%     Pour points file: This parameter provides the pour point matrix.
 %     The pour points are the first point in each tributary, neighbours 
 %     to the confluence with the main channel. Is string type. If you want the 
-%	  pour points matrix type 'yes', else leave junctions_points = ''.
+%	  pour points matrix write 'yes', else leave empty.
 % 
-%     output_name: The name for the obtained ASCII channel network.
-%     Has to be written without the extension '.asc'/'.txt', either 
-%     spaces or strange characters.   
-%     If no name is given, the resultant name will be built by adding to
-%     the DEM name the values set in the parameters joined by an underscore.
-%     Type a name, else leave output_name = ''.
-%
+%     File extension: The output raster extension, write 'tif' for a 
+%     Tif/GeoTiff file or 'ascii' for an ASCII file.
+%     
+%     
 %
 %
 %  Output files:
 % 
-%     Output files: An ACII file 
-%                   and a .csv  file.
+%     Output files: A raster file and a .csv  file.
 %
 %     Both files can be drawn directly in ArcMap.
-%     These file will be located inside 'outputs/images' and 'outputs'
+%     These file will be located inside 'outputs/channel_network/' and 'outputs/csv/'
 %     folders respectively.
 %
 %
@@ -104,52 +102,21 @@
 %	Field6: 'area_value', is the drainage area in square meters.
 %	Field7: 'id_value', the id number of each river (unique).
 %	Field8: 'dis_value', is the distance upstream direction.
-%   Field9: 'jun_value', the pour points location.
+%   Field9: 'pourpoint_value', the pour points location.
 %   Field10: 'out_value', the outlets location.
 
-
-
-
-
+% #########################################################################
+% #########################################################################
 
 % paths to be added to MATLAB environment
 % set the paths where the FLUNETS functions and the TopoToolbox are located
 % -------------------------------------------------------------------------
-addpath $addpath/stream_ordering_tools %add the path where FLUNETS functions are stored.
-addpath $addpath/topotoolbox           %add the path where Topotoolbox functions are stored.
+addpath ..path\stream_ordering_tools %add the path where FLUNETS functions are stored.
+addpath ..path\topotoolbox           %add the path where Topotoolbox functions are stored.
 
-
-% declare global variables
 % -------------------------------------------------------------------------
-global sorting_type
-global hierarchy_attribute
-global max_trib_order
-global min_drainage_area
-global maxbase
-global internal_matrices
-global junctions_points
-global output_name
-
-
-% parameters
-% -------------------------------------------------------------------------
-% mandatory parameters
-dem_namefile                  = '$yourpath\dem.asc';              %your DEM 
-sorting_type                  = 'hack';                     %sorting hierarchy           
-hierarchy_attribute           = 'accumulation';             %hierarchy attribute
-
-% optional parameters
-% -------------------------------------------------------------------------
-max_trib_order                = '';                             
-min_drainage_area             = '';                     
-maxbase                       = '';                              
-internal_matrices             = '';                              
-junctions_points              = '';
-output_name                   = '';
-
-% calls build_streams_map
-% -------------------------------------------------------------------------
-flunet_chan_res =  build_streams_map(dem_namefile) ; 
+inputs = inputdlg({'Sorting Method','Hierarchy Attribute','Max. tributary order (optional)','Min. drainage area (optional)','Max. base (optional)','Calculate Internal fluvial files: (yes/no) (optional)','Calculate Pour Points: (yes/no) (optional)','Output File extension: TIF or ASC (optional)'},'Fill the inputs', [1,60], { 'hack' 'accumulation' '' '' '' '' '' 'tif'}, 'on');
+flunet_chan_res =  build_streams_map(inputs) ; % calls build_streams_map
 
 
 

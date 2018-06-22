@@ -1,15 +1,12 @@
-function [xy_channel, xy_pourpoint, order_pourpoint, xy_dist_fin ] = build_channel(xy,  xy_channel, xy_pourpoint, order_pourpoint, xy_dist, order)
+function  [xy_channel, xy_pourpoint, order_pourpoint, xy_dist_fin, matrices ] = build_channel(xy,  xy_channel, xy_pourpoint, order_pourpoint, xy_dist, order, matrices)
+
 
 % declare global variables
 % % -----------------------------------------------------------------------
-global dem_fill
-global flowaccumulation
-global flowdir
-global flowdist
-global strahler
 global sorting_type
 global hierarchy_attribute
 global id_river
+global fields
 
 n            = true;
 ind_chan     = 1;
@@ -22,35 +19,38 @@ while n
     
     %  preallocating arrays
     % % -------------------------------------------------------------------
-    names = [{'elevation_neighbors'}, {'flowacc_neighbors'}, {'flowdir_neighbors'}, {'coord_xy_neighbors'}, {'flowdist_neighbors'}, {'strahler_neighbors'}];
+    names = [{'elevation_neighbors'}, {'flowacc_neighbors'}, {'flowdir_neighbors'}, {'flowdist_neighbors'}, {'strahler_neighbors'}, {'coord_xy_neighbors'}];
     
     s = struct;
     for i = names
         s.(i{1,1}) = ones(1,9);
     end
     
-    n_rows                        = size(dem_fill,1);
+    n_rows                        = size(matrices.(fields{1}),1);
     count                         = 1;
     
     %  fills arrays with neighbors cells values
     % % -------------------------------------------------------------------
     for i = [xy-n_rows, xy, xy+n_rows]
         for j = [-1, 0, +1]
-            s.(names{1})(count)           = dem_fill(i+j);
-            s.(names{2})(count)           = flowaccumulation(i+j);
-            s.(names{3})(count)           = flowdir(i+j);
-            s.(names{4})(count)           = i+j;
+            s.(names{1})(count)           = matrices.(fields{1})(i+j);
+            s.(names{2})(count)           = matrices.(fields{2})(i+j);
+            s.(names{3})(count)           = matrices.(fields{3})(i+j);
+            
             if strcmp(hierarchy_attribute ,'distance')
-                s.(names{5})(count)        = flowdist(i+j);
+                s.(names{4})(count)        = matrices.(fields{4})(i+j);
             elseif strcmp(hierarchy_attribute ,'accumulation')
-                s.(names{5})               = '';
+                s.(names{4})               = '';
             end
             
             if strcmp(sorting_type,'horton')
-                s.(names{6})(count)       = strahler(i+j);
+                s.(names{5})(count)       = matrices.(fields{5})(i+j);
             elseif strcmp(sorting_type,'hack')
-                s.(names{6})              = '';
+                s.(names{5})              = '';
             end
+            
+            s.(names{6})(count)           = i+j;
+            
             count = count + 1;
         end
     end

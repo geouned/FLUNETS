@@ -8,8 +8,8 @@ global sorting_type
 
 % returns pp empty if no neighbour meets the below conditions
 % % -----------------------------------------------------------------------
-xy_pourpoint_i                = [];
-order_pourpoint_i             = [];
+xy_pourpoint_i               = [];
+order_pourpoint_i            = [];
 
 flowacc_drainage             = s.flowacc_neighbors.*cell_area; % turns array with accumulation values to an array with drainage area values
 index_value                  = find(flowacc_drainage >= min_drainage_area); % selects indices of elements with equal or higher drainage basin area value than drainage_basin

@@ -1,8 +1,7 @@
-function streams_matrix = build_streams_map(inputs) 
+function matrices = build_streams_map(inputs) 
 
 % declare global variables
 % % -----------------------------------------------------------------------
-
 global sorting_type
 global hierarchy_attribute
 global max_trib_order
@@ -14,16 +13,8 @@ global pourpoints_points
 global cell_size
 global cell_area
 global fdir_values
-global dem_fill
-global flowdir
-global flowaccumulation
-global flowdist
-global strahler
+global fields
 global id_river
-
-
-
-
 
 % declare static variables, user must not change this!
 % % -----------------------------------------------------------------------
@@ -50,7 +41,6 @@ id_river                        = 0;
 % Schwanghart TopoTools 2 functions
 % padding: adds two rows and columns to the DEM.Z matrix with NaN values
 % % -----------------------------------------------------------------------
-
 DEM                             = GRIDobj(); 
 DEM.Z                           = [NaN(size(DEM.Z,1)+4,2) [NaN(2,size(DEM.Z,2)); DEM.Z ; NaN(2,size(DEM.Z,2))] NaN(size(DEM.Z,1)+4,2)];
 DEM.size                        = [DEM.size(1)+4,DEM.size(2)+4];
@@ -65,34 +55,30 @@ FDIR                            = FLOWobj2GRIDobj(FD);
 
 disp 'internal matrices created';
 
-% fields = [{'dem_fill'}, {'flowaccumulation'}, {'flowdir'}, {'flowdist'}, {'strahler'}, {'streams_matrix'}, {'id_matrix'}, {'dist_matrix'}, {'outlet_matrix'}];
-% 
-% matrices = struct;
-% for k = fields
-%     matrices.(k{1}) = ones(2,2);
-% end
+fields = [{'dem_fill'}, {'flowaccumulation'}, {'flowdir'}, {'flowdist'}, {'strahler'}, {'streams_matrix'}, {'id_matrix'}, {'dist_matrix'}, {'outlet_matrix'}, {'pourpoint_matrix'}];
 
+matrices = struct;
+for k = fields
+    matrices.(k{1}) = NaN(size(DEMf.Z));
+end
 
 % declare var matrices
 % % -----------------------------------------------------------------------
-dem_fill              = DEMf.Z; 
-flowaccumulation      = FA.Z;
-flowdir               = FDIR.Z;
-flowdist              = '';
-strahler              = '';
+matrices.(fields{1})  = DEMf.Z; 
+matrices.(fields{2})  = FA.Z;
+matrices.(fields{3})  = FDIR.Z;
 if strcmp(hierarchy_attribute ,'distance')
     DISTANCE                        = flowdistance(FD,S,'downstream');
     DISTANCE.Z(DISTANCE.Z<=0)       = NaN; %replace 0 and arcmap nan values with NaN
-    flowdist                        = DISTANCE.Z;
+    matrices.(fields{4})            = DISTANCE.Z;
 end
 
 if strcmp(sorting_type ,'horton')
     STRAHLER                        = streamorder(FD,flowacc(FD)>1,'strahler');
     stra                            = double(STRAHLER.Z);
     stra(stra<=0)                   = NaN; %replace 0 and arcmap nan values with NaN  
-    strahler                        = stra;
+    matrices.(fields{5})            = stra;
 end
-
 
 % declare static variables user must not change
 % % -----------------------------------------------------------------------
@@ -116,100 +102,72 @@ else
     outlet_z              =S.IXgrid(S.distance==0);
 end
 
+for a = 1:numel(outlet_z)
+    matrices.(fields{9})(outlet_z(a)) = 1;
+end
+
 clear S;
 clear FD;
-
-
-% generates NaN matrices same size of flowaccumulation matrix
-% % -----------------------------------------------------------------------
-streams_matrix      = NaN(size(flowaccumulation));
-id_matrix           = NaN(size(flowaccumulation));
-dist_matrix         = NaN(size(flowaccumulation));
-outlet_matrix       = NaN(size(flowaccumulation));
-
-for a = 1:numel(outlet_z)
-    outlet_matrix(outlet_z(a)) = 1;
-end
-
-if strcmp(pourpoints_points,'yes')    
-    pourpoint_matrix     = NaN(size(flowaccumulation));
-else
-    pourpoint_matrix     = [];
-end
 
 % loops through each outlet to extract and order each channel network
 % % -----------------------------------------------------------------------
 for item = 1:numel(outlet_z)    
     xy_pourpoint_copy = outlet_z(item);    
-    xy_area = flowaccumulation(xy_pourpoint_copy)*cell_area;       
+    xy_area = matrices.(fields{2})(xy_pourpoint_copy)*cell_area;       
     if xy_area >= min_drainage_area    
         switch sorting_type
             case 'hack'
                 order_pourpoint_copy     = '';
             case 'horton'
-                order_pourpoint_copy     = strahler(xy_pourpoint_copy);
+                order_pourpoint_copy     = matrices.(fields{5})(xy_pourpoint_copy);
         end
 
         % calls build_channelnetwork function
         % % -------------------------------------------------------------------
-        [streams_matrix, id_matrix, dist_matrix, pourpoint_matrix] = build_channel_network( xy_pourpoint_copy, order_pourpoint_copy, streams_matrix, id_matrix, dist_matrix, pourpoint_matrix);
+        [matrices] = build_channel_network( xy_pourpoint_copy, order_pourpoint_copy, matrices);
 
     end
 end
+
 % removes the padding 
 % % -----------------------------------------------------------------------
-streams_matrix      = streams_matrix(3:size(streams_matrix,1)-2,3:size(streams_matrix,2)-2); 
-id_matrix           = id_matrix(3:size(id_matrix,1)-2,3:size(id_matrix,2)-2); 
-dist_matrix         = dist_matrix(3:size(dist_matrix,1)-2,3:size(dist_matrix,2)-2); 
-outlet_matrix       = outlet_matrix(3:size(outlet_matrix,1)-2,3:size(outlet_matrix,2)-2); 
-
-if strcmp(pourpoints_points,'yes')    
-    pourpoint_matrix     = pourpoint_matrix(3:size(pourpoint_matrix,1)-2,3:size(pourpoint_matrix,2)-2);
-end
-
-dem_fill            = dem_fill(3:size(dem_fill,1)-2,3:size(dem_fill,2)-2);
-flowdir             = flowdir(3:size(flowdir,1)-2,3:size(flowdir,2)-2);
-flowaccumulation    = flowaccumulation(3:size(flowaccumulation,1)-2,3:size(flowaccumulation,2)-2);
-if strcmp(hierarchy_attribute ,'distance')
-    flowdist        = flowdist(3:size(flowdist,1)-2,3:size(flowdist,2)-2);
-end
-if strcmp(sorting_type,'horton')
-    strahler        = strahler(3:size(strahler,1)-2,3:size(strahler,2)-2);
+for m = 1:10
+    matrices.(fields{m}) = matrices.(fields{m})(3:size(matrices.(fields{m}),1)-2,3:size(matrices.(fields{m}),2)-2);
 end
 
 % resize and turn matrices to GRIDobjs
 % % -----------------------------------------------------------------------
-DEMf.Z                          = dem_fill;
+DEMf.Z                          = matrices.(fields{1});
 DEMf.size                       = [DEMf.size(1)-4,DEMf.size(2)-4];
 
-FDIR.Z                          = flowdir;
+FDIR.Z                          = matrices.(fields{3});
 FDIR.size                       = [FDIR.size(1)-4,FDIR.size(2)-4];
 
-FA.Z                            = flowaccumulation;
+FA.Z                            = matrices.(fields{2});
 FA.size                         = [FA.size(1)-4,FA.size(2)-4];
 
 if strcmp(hierarchy_attribute ,'distance')
-    DISTANCE.Z                  = flowdist;
+    DISTANCE.Z                  = matrices.(fields{4});
     DISTANCE.size               = [DISTANCE.size(1)-4,DISTANCE.size(2)-4];
 end
 
 if strcmp(sorting_type,'horton')
-    STRAHLER.Z                  = strahler;
+    STRAHLER.Z                  = matrices.(fields{5});
     STRAHLER.size               = [STRAHLER.size(1)-4,STRAHLER.size(2)-4];
 end
 
 if strcmp(pourpoints_points,'yes')
     POURPOINTS                   = FDIR;
-    POURPOINTS.Z                 = pourpoint_matrix;
+    POURPOINTS.Z                 = matrices.(fields{10});
     POURPOINTS.size              = FDIR.size;
 end
 
 STREAMS                         = FDIR;
-STREAMS.Z                       = streams_matrix;
+STREAMS.Z                       = matrices.(fields{6});
 STREAMS.size                    = FDIR.size;
 
 ID                              = FDIR;
-ID.Z                            = id_matrix;
+ID.Z                            = matrices.(fields{7});
 ID.size                         = FDIR.size;
 
 
@@ -226,7 +184,7 @@ fchan=['outputs/raster/',DEM.name,und];
 fcsv=['outputs/csv/',DEM.name,'_result',datetime,'.csv'];
 
 
-% % -----------------------------------------------------------------------
+% % % -----------------------------------------------------------------------
 if strcmpi(ext,'tif') || strcmpi(ext,'tiff') || strcmpi(ext,'geotif') || strcmpi(ext,'geotiff')
     GRIDobj2geotiff(STREAMS); %writes the matrix to geotiff
     if strcmp(internal_matrices ,'yes')
@@ -273,21 +231,21 @@ clear ID;
 xi = find(STREAMS.Z >0);
 [x,y] = ind2coord(STREAMS,xi);
 
-area_value = flowaccumulation(xi).*cell_area;
+area_value = matrices.(fields{2})(xi).*cell_area;
 
 if strcmp(pourpoints_points,'yes')
-    ppm = pourpoint_matrix(xi);
+    ppm = matrices.(fields{10})(xi);
 else
     ppm = NaN(1,numel(xi))';
 end
 
 %exports values to csv with no headers for arcmap
 % % -----------------------------------------------------------------------
-dlmwrite(fcsv, [x y dem_fill(xi) streams_matrix(xi) flowaccumulation(xi) area_value id_matrix(xi) dist_matrix(xi) ppm outlet_matrix(xi)], 'precision', 8);
+dlmwrite(fcsv, [x y matrices.(fields{1})(xi) matrices.(fields{6})(xi) matrices.(fields{2})(xi) area_value matrices.(fields{7})(xi) matrices.(fields{8})(xi) ppm matrices.(fields{9})(xi)], 'precision', 8);
 
 % plots streams_matrix in MATLAB
 % % -----------------------------------------------------------------------
 figure('NumberTitle', 'off', 'Name', 'Stream-network');
-imageschs(DEMf,streams_matrix, 'ticklabels','nice','colorbar',true,'exaggerate',10);
+imageschs(DEMf,matrices.(fields{6}), 'ticklabels','nice','colorbar',true,'exaggerate',10);
 
 end

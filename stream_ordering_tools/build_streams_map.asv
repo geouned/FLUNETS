@@ -65,12 +65,7 @@ FDIR                            = FLOWobj2GRIDobj(FD);
 
 disp 'internal matrices created';
 
-% fields = [{'dem_fill'}, {'flowaccumulation'}, {'flowdir'}, {'flowdist'}, {'strahler'}, {'streams_matrix'}, {'id_matrix'}, {'dist_matrix'}, {'outlet_matrix'}];
-% 
-% matrices = struct;
-% for k = fields
-%     matrices.(k{1}) = ones(2,2);
-% end
+
 
 
 % declare var matrices

@@ -64,7 +64,9 @@
 %     Max. base: Is the limitant height of an outlet point to be sorted.
 %     If an outlet is located at a lower height to the value set,
 %     it will be considered. Write a number, can be float, double or integer,
-%	  else leave empty.
+%	    else leave empty. If you want to establish a minimum height from which the 
+%     fluvial network is extracted, you need to change the "<" sign to ">" in line
+%     100 of the build_streams_map.m script.
 % 
 %     Internal fluvial files: This parameter provides the matrices generated 
 %     internally with Topotoolbox functions' (flow direction, flow
